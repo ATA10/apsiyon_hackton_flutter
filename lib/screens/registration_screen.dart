@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:convert';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -9,6 +11,10 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   File? _image;
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -18,6 +24,45 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       setState(() {
         _image = File(pickedFile.path);
       });
+    }
+  }
+
+  void _saveRegistration() {
+    final name = _nameController.text;
+    final email = _emailController.text;
+    final phone = _phoneController.text;
+    final address = _addressController.text;
+
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || address.isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Lütfen tüm alanları doldurunuz.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    } else {
+      final registrationData = {
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "address": address,
+      };
+
+      final registrationJson = jsonEncode(registrationData);
+
+      // JSON verisini burada kaydedin (dosyaya yazma, API'ye gönderme vs.)
+      print("Kayıt verisi: $registrationJson");
+
+      Fluttertoast.showToast(
+        msg: "Kayıt başarılı!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+
+      Navigator.of(context).pop();
     }
   }
 
@@ -50,6 +95,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               SizedBox(height: 20),
               TextField(
+                controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'İsim - Soyisim',
                   border: OutlineInputBorder(),
@@ -57,6 +103,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               SizedBox(height: 20),
               TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Mail',
                   border: OutlineInputBorder(),
@@ -64,6 +111,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               SizedBox(height: 20),
               TextField(
+                controller: _phoneController,
                 decoration: InputDecoration(
                   labelText: 'Telefon',
                   border: OutlineInputBorder(),
@@ -71,6 +119,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               SizedBox(height: 20),
               TextField(
+                controller: _addressController,
                 decoration: InputDecoration(
                   labelText: 'Adres',
                   border: OutlineInputBorder(),
@@ -78,9 +127,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  // Handle save action
-                },
+                onPressed: _saveRegistration,
                 child: Text('Kaydet'),
               ),
             ],

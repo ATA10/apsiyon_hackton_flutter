@@ -18,9 +18,9 @@ class _MainScreenState extends State<MainScreen> {
     String password = _passwordController.text;
 
     // Basit bir doğrulama kontrolü
-    if (username == 'user' && password == 'password') {
-      // Giriş başarılı, bilgi güncelleme, giriş izni oluşturma veya giriş-çıkış bilgileri ekranına yönlendir
-      Navigator.push(
+    if (username == 'user' && password == 'pass') {
+      // Giriş başarılı, HomeScreen'e yönlendir
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
       );
@@ -97,47 +97,63 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 class HomeScreen extends StatelessWidget {
+  void _logout(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => MainScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => UserInfoScreen(),
-                );
-              },
-              child: Text('Bilgileri Güncelle'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => CreatePermissionScreen(),
-                );
-              },
-              child: Text('Giriş İzni Oluştur'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => EntryExitInfoScreen(),
-                );
-              },
-              child: Text('Giriş-Çıkış Bilgileri'),
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Home'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () => _logout(context),
             ),
           ],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => UserInfoScreen(),
+                  );
+                },
+                child: Text('Bilgileri Güncelle'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => CreatePermissionScreen(),
+                  );
+                },
+                child: Text('Giriş İzni Oluştur'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => EntryExitInfoScreen(),
+                  );
+                },
+                child: Text('Giriş-Çıkış Bilgileri'),
+              ),
+            ],
+          ),
         ),
       ),
     );
