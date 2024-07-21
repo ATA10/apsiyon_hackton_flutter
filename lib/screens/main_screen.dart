@@ -17,6 +17,7 @@ class _MainScreenState extends State<MainScreen> {
     String username = _usernameController.text;
     String password = _passwordController.text;
 
+    //  Burada veritabanından sorgu sonucunda rol modeli gelecek ve ilgili sayfa yönlendirmesi olacak
     // Basit bir doğrulama kontrolü
     if (username == 'user' && password == 'pass') {
       // Giriş başarılı, HomeScreen'e yönlendir
@@ -24,7 +25,13 @@ class _MainScreenState extends State<MainScreen> {
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
       );
-    } else {
+    } else if (username == 'guest' && password == 'pass') {
+      // Giriş başarılı, HomeScreenGuest'e yönlendir
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreenGuest()),
+      );
+    }  else {
       // Hata mesajı göster
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Kullanıcı adı veya şifre hatalı')),
@@ -97,6 +104,62 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
+//  Misafir anasayfa
+class HomeScreenGuest extends StatelessWidget {
+  void _logout(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => MainScreen()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Anasayfa Misafir'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () => _logout(context),
+            ),
+          ],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => UserInfoScreen(),
+                  );
+                },
+                child: Text('Bilgileri Güncelle'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => EntryExitInfoScreen(),
+                  );
+                },
+                child: Text('Giriş-Çıkış Bilgileri'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Sakin sayfası
 class HomeScreen extends StatelessWidget {
   void _logout(BuildContext context) {
     Navigator.pushReplacement(
