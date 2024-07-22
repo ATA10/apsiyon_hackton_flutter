@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -15,6 +17,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -27,13 +30,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-  void _saveRegistration() {
+  Future<void> _saveRegistration() async {
     final name = _nameController.text;
     final email = _emailController.text;
     final phone = _phoneController.text;
     final address = _addressController.text;
+    final password = _passwordController.text;
 
-    if (name.isEmpty || email.isEmpty || phone.isEmpty || address.isEmpty) {
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || address.isEmpty || password.isEmpty) {
       Fluttertoast.showToast(
         msg: "Lütfen tüm alanları doldurunuz.",
         toastLength: Toast.LENGTH_SHORT,
@@ -43,26 +47,52 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       );
     } else {
       final registrationData = {
-        "name": name,
+        "fullname": name,
         "email": email,
-        "phone": phone,
-        "address": address,
+        "password": password
       };
 
-      final registrationJson = jsonEncode(registrationData);
-
-      // JSON verisini burada kaydedin (dosyaya yazma, API'ye gönderme vs.)
-      print("Kayıt verisi: $registrationJson");
-
-      Fluttertoast.showToast(
-        msg: "Kayıt başarılı!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/user/register'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(registrationData),
       );
 
-      Navigator.of(context).pop();
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final token = responseData['token'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+
+        Fluttertoast.showToast(
+          msg: token,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+
+        Fluttertoast.showToast(
+          msg: "Kayıt başarılı!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+
+        Navigator.of(context).pop();
+      } else {
+        Fluttertoast.showToast(
+          msg: "Kayıt başarısız oldu!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
     }
   }
 
@@ -124,6 +154,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   labelText: 'Adres',
                   border: OutlineInputBorder(),
                 ),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Şifre',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
               ),
               SizedBox(height: 20),
               ElevatedButton(
