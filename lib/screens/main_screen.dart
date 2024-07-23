@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'registration_screen.dart';
-import 'user_info_screen.dart';
-import 'create_permission_screen.dart';
-import 'entry_exit_info_screen.dart';
+import 'home_screen.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -13,28 +14,43 @@ class _MainScreenState extends State<MainScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     String username = _usernameController.text;
     String password = _passwordController.text;
 
-    //  Burada veritabanından sorgu sonucunda rol modeli gelecek ve ilgili sayfa yönlendirmesi olacak
-    // Basit bir doğrulama kontrolü
-    if (username == 'user' && password == 'pass') {
-      // Giriş başarılı, HomeScreen'e yönlendir
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
-    } else if (username == 'guest' && password == 'pass') {
-      // Giriş başarılı, HomeScreenGuest'e yönlendir
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreenGuest()),
-      );
-    }  else {
-      // Hata mesajı göster
+    String url = "http://10.0.2.2:8000/user/login";
+    var data = {
+      "email": username,
+      "password": password
+    };
+
+    var response = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(data),
+    );
+
+    if (response.statusCode == 200) {
+      var loginResponse = json.decode(response.body);
+      print("Login Response: $loginResponse");
+
+      // Check if login was successful
+      if (loginResponse['token'] != null) {
+        // Navigate to HomeScreen based on user role
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kullanıcı adı veya şifre hatalı')),
+        );
+      }
+    } else {
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Kullanıcı adı veya şifre hatalı')),
+        SnackBar(content: Text('Giriş yapılamadı')),
       );
     }
   }
@@ -97,126 +113,6 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-//  Misafir anasayfa
-class HomeScreenGuest extends StatelessWidget {
-  void _logout(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => MainScreen()),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Anasayfa Misafir'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () => _logout(context),
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => UserInfoScreen(),
-                  );
-                },
-                child: Text('Bilgileri Güncelle'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => EntryExitInfoScreen(),
-                  );
-                },
-                child: Text('Giriş-Çıkış Bilgileri'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Sakin sayfası
-class HomeScreen extends StatelessWidget {
-  void _logout(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => MainScreen()),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Home'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () => _logout(context),
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => UserInfoScreen(),
-                  );
-                },
-                child: Text('Bilgileri Güncelle'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => CreatePermissionScreen(),
-                  );
-                },
-                child: Text('Giriş İzni Oluştur'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => EntryExitInfoScreen(),
-                  );
-                },
-                child: Text('Giriş-Çıkış Bilgileri'),
-              ),
-            ],
           ),
         ),
       ),

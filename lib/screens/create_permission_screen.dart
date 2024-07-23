@@ -10,17 +10,14 @@ class CreatePermissionScreen extends StatefulWidget {
 }
 
 class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
-  String _selectedPermissionType = 'QR oluştur';
-  String _selectedEntryType = 'Durum';
+  String _selectedPermissionType = '';
+  String _selectedEntryType = '';
   bool _showAdditionalFields = false;
   TextEditingController _additionalInfoController = TextEditingController();
-  TextEditingController _numberController = TextEditingController();
   TextEditingController _nameController = TextEditingController();
-  TextEditingController _phoneController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
-  DateTime? _numberDate;
   File? _image;
 
   Future<void> _pickImage() async {
@@ -53,30 +50,13 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
     }
   }
 
-  Future<void> _pickNumberDate(BuildContext context) async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        _numberDate = pickedDate;
-      });
-    }
-  }
-
   Map<String, dynamic> _collectFormData() {
     // Değer girilmeyen alanları JSON'a yazmamak için null kontrolü yapıyoruz.
     final Map<String, dynamic> formData = {};
+    formData['token'] = _nameController.text;
 
     if (_nameController.text.isNotEmpty) {
       formData['name'] = _nameController.text;
-    }
-    if (_phoneController.text.isNotEmpty) {
-      formData['phone'] = _phoneController.text;
     }
     if (_emailController.text.isNotEmpty) {
       formData['email'] = _emailController.text;
@@ -87,14 +67,7 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
     }
     formData['entryType'] = _selectedEntryType;
 
-    if (_selectedEntryType == 'Sayılı') {
-      if (_numberController.text.isNotEmpty) {
-        formData['number'] = _numberController.text;
-      }
-      if (_numberDate != null) {
-        formData['numberDate'] = _numberDate?.toIso8601String();
-      }
-    } else if (_selectedEntryType == 'Tarihli') {
+    if (_selectedEntryType == 'Tarihli') {
       if (_startDate != null) {
         formData['startDate'] = _startDate?.toIso8601String();
       }
@@ -104,7 +77,6 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
     } else if (_selectedEntryType == 'Durum') {
       formData['durum'] = true;
     }
-
     if (_image != null) {
       formData['imagePath'] = _image?.path;
     }
@@ -168,28 +140,11 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
                 },
               ),
             ),
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey,
-                backgroundImage: _image != null ? FileImage(_image!) : null,
-                child: _image == null ? Icon(Icons.add_a_photo) : null,
-              ),
-            ),
             SizedBox(height: 20),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Ad-Soyad',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              controller: _phoneController,
-              decoration: InputDecoration(
-                labelText: 'Telefon',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -204,17 +159,7 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
             SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ChoiceChip(
-                  label: Text('QR oluştur'),
-                  selected: _selectedPermissionType == 'QR oluştur',
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedPermissionType = 'QR oluştur';
-                      _showAdditionalFields = false;
-                    });
-                  },
-                ),
+              children: [                
                 ChoiceChip(
                   label: Text('Fotograf'),
                   selected: _selectedPermissionType == 'Fotograf ile giriş',
@@ -226,11 +171,12 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
                   },
                 ),
                 ChoiceChip(
-                  label: Text('Mobil'),
-                  selected: _selectedPermissionType == 'Mobil ile giriş',
+                  labelPadding: EdgeInsets.symmetric(horizontal: 23),
+                  label: Text('NFC'),
+                  selected: _selectedPermissionType == 'NFC ile giriş',
                   onSelected: (selected) {
                     setState(() {
-                      _selectedPermissionType = 'Mobil ile giriş';
+                      _selectedPermissionType = 'NFC ile giriş';
                       _showAdditionalFields = true;
                     });
                   },
@@ -250,14 +196,6 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
                         backgroundImage: _image != null ? FileImage(_image!) : null,
                         child: _image == null ? Icon(Icons.add_a_photo) : null,
                       ),
-                      if (_image != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Image.file(
-                            _image!,
-                            height: 100,
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -268,7 +206,7 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
                 child: TextField(
                   controller: _additionalInfoController,
                   decoration: InputDecoration(
-                    labelText: 'Giriş sayısı giriniz',
+                    labelText: 'NFC no giriniz',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -287,6 +225,7 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
                   },
                 ),
                 ChoiceChip(
+                  labelPadding: EdgeInsets.symmetric(horizontal: 23),
                   label: Text('Tarihli'),
                   selected: _selectedEntryType == 'Tarihli',
                   onSelected: (selected) {
@@ -295,37 +234,8 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
                     });
                   },
                 ),
-                ChoiceChip(
-                  label: Text('Sayılı'),
-                  selected: _selectedEntryType == 'Sayılı',
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedEntryType = 'Sayılı';
-                    });
-                  },
-                ),
               ],
             ),
-            if (_selectedEntryType == 'Sayılı')
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _numberController,
-                      decoration: InputDecoration(
-                        labelText: 'Sayı giriniz',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    TextButton(
-                      onPressed: () => _pickNumberDate(context),
-                      child: Text(_numberDate == null ? 'Sayı geçerlilik tarihi seç' : 'Geçerlilik tarihi: ${_numberDate?.toLocal().toString().split(' ')[0]}'),
-                    ),
-                  ],
-                ),
-              ),
             if (_selectedEntryType == 'Tarihli')
               Padding(
                 padding: const EdgeInsets.only(top: 20),
