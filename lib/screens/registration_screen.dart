@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -12,23 +10,12 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  File? _image;
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-    }
-  }
 
   Future<void> _saveRegistration() async {
     final name = _nameController.text;
@@ -112,15 +99,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                ),
-              ),
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey,
-                  backgroundImage: _image != null ? FileImage(_image!) : null,
-                  child: _image == null ? Icon(Icons.add_a_photo) : null,
                 ),
               ),
               SizedBox(height: 20),

@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'registration_screen.dart';
 import 'home_screen.dart';
+import '../services/token_manager.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -36,6 +37,10 @@ class _MainScreenState extends State<MainScreen> {
 
       // Check if login was successful
       if (loginResponse['token'] != null) {
+        // Store the token
+        TokenManager().setToken(loginResponse['token']);
+        print(loginResponse['token']);
+
         // Navigate to HomeScreen based on user role
         Navigator.pushReplacement(
           context,
