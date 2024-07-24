@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import '../services/token_manager.dart';
@@ -58,6 +59,13 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       if (response.statusCode == 200) {
         final responseData = await http.Response.fromStream(response);
         print("Update Photo Response: ${responseData.body}");
+
+         // Kayıt başarılı toast gösterimi
+        Fluttertoast.showToast(
+          msg: "Kayıt başarılı",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
       } else {
         final responseData = await http.Response.fromStream(response);
         print("Failed to upload photo: ${responseData.statusCode}");
