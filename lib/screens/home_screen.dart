@@ -1,10 +1,11 @@
-// home_screen.dart
 import 'package:flutter/material.dart';
 import 'main_screen.dart';
 import 'user_info_screen.dart';
 import 'create_permission_screen.dart';
 import 'entry_exit_info_screen.dart';
-import '../services/user_service.dart';
+import '../services/user/UserDataManager.dart';
+import '../services/user/user_data.dart';
+import '../services/ip_adress.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,21 +13,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _photoUrl;
-  bool _isLoading = true;
+  String _profileImageUrl = '';
+  String _userName = '';
+  String _userEmail = '';
+
+  UserData? userData = UserDataManager.getUserData();
 
   @override
   void initState() {
     super.initState();
-    _fetchPhotoUrl();
+    _loadUserInfo();
   }
 
-  Future<void> _fetchPhotoUrl() async {
-    final photoUrl = await UserService.fetchUserPhotoUrl();
-    setState(() {
-      _photoUrl = photoUrl;
-      _isLoading = false;
-    });
+  void _loadUserInfo() {
+    if (userData != null) {
+      setState(() {
+        _profileImageUrl = ipAdres + userData!.imageUrl_data!;
+        _userName = userData!.fullname_data;
+        _userEmail = userData!.email_data;
+      });
+    }
   }
 
   void _logout(BuildContext context) {
@@ -51,49 +57,57 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         body: Center(
-          child: _isLoading
-              ? CircularProgressIndicator()
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_photoUrl != null)
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(_photoUrl!),
-                        radius: 50,
-                      ),
-                    SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => UserInfoScreen(),
-                        );
-                      },
-                      child: Text('Bilgileri Güncelle'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => CreatePermissionScreen(),
-                        );
-                      },
-                      child: Text('Giriş İzni Oluştur'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => EntryExitInfoScreen(),
-                        );
-                      },
-                      child: Text('Giriş-Çıkış Bilgileri'),
-                    ),
-                  ],
-                ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _profileImageUrl.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 50,
+                      backgroundImage: NetworkImage(_profileImageUrl),
+                    )
+                  : CircularProgressIndicator(),
+              SizedBox(height: 10),
+              Text(
+                _userName,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                _userEmail,
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => UserInfoScreen(),
+                  );
+                },
+                child: Text('Bilgileri Güncelle'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => CreatePermissionScreen(),
+                  );
+                },
+                child: Text('Giriş İzni Oluştur'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => EntryExitInfoScreen(),
+                  );
+                },
+                child: Text('Giriş-Çıkış Bilgileri'),
+              ),
+            ],
+          ),
         ),
       ),
     );

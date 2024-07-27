@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import '../services/token_manager.dart';
+import '../services/ip_adress.dart';
+import '../services/apartments.dart';
 
 class CreatePermissionScreen extends StatefulWidget {
   @override
@@ -12,6 +14,7 @@ class CreatePermissionScreen extends StatefulWidget {
 }
 
 class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
+  String ip_adres = ipAdres;
   String _selectedPermissionType = '';
   String _selectedEntryType = '';
   bool _showAdditionalFields = false;
@@ -30,39 +33,13 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
   }
 
   Future<void> _fetchApartments() async {
-    String? token = await TokenManager().getToken();
-
-    if (token == null) {
-      Fluttertoast.showToast(
-        msg: "Token alınamadı",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-      );
-      return;
-    }
-
-    final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/apartments'),
-      headers: {
-        'Authorization': token,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      setState(() {
-        _apartments = data.map((apartment) => {
-          'id': apartment['apartment_id'],
-          'name': apartment['apartment_name'],
-        }).toList();
-      });
-    } else {
-      Fluttertoast.showToast(
-        msg: "Failed to fetch apartments",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-      );
-    }
+    List<Map<String, dynamic>> apartments = await fetchApartments();
+    setState(() {
+      _apartments = apartments;
+      if (_apartments.isNotEmpty) {
+        _selectedApartmentId = _apartments[0]['apartment_id'].toString();
+      }
+    });
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -103,8 +80,6 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
     }
     if (_selectedApartmentId != null) {
       formData['apartment_id'] = _selectedApartmentId;
-    } else {
-      formData['apartment_id'] = '1'; // Fallback apartment_id
     }
     if (_selectedEntryType == 'Tarih') {
       if (_startDate != null) {
@@ -115,7 +90,7 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
       }
     }
     if (_image != null) {
-      formData['imagePath'] = _image?.path;
+      formData['imageurl'] = _image?.path;
     }
 
     return formData;
@@ -138,7 +113,7 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
     print("Form Data: $jsonData");
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/user/permission/create'),
+      Uri.parse('$ip_adres/user/permission/create'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': token,
@@ -157,7 +132,8 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text("Kayıt Başarılı"),
-            content: Text(response.body),
+            content: 
+            Image.network('$ip_adres'+jsonDecode(response.body)['qr_image_url']),
             actions: [
               TextButton(
                 onPressed: () {
@@ -215,8 +191,8 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
               value: _selectedApartmentId,
               items: _apartments.map((apartment) {
                 return DropdownMenuItem<String>(
-                  value: apartment['id'].toString(),
-                  child: Text(apartment['name']),
+                  value: apartment['apartment_id'].toString(),
+                  child: Text(apartment['apartment_id'].toString()), // Assuming 'apartment_name' is the key for apartment names
                 );
               }).toList(),
               onChanged: (value) {

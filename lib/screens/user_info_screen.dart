@@ -1,11 +1,18 @@
 // user_info_screen.dart
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobil_app/screens/home_screen.dart';
 import 'package:path/path.dart' as path;
 import '../services/token_manager.dart';
+import '../services/ip_adress.dart';
+import '../services/user/UserDataManager.dart';
+import '../services/user/user_data.dart';
 
 class UserInfoScreen extends StatefulWidget {
   @override
@@ -15,6 +22,10 @@ class UserInfoScreen extends StatefulWidget {
 class _UserInfoScreenState extends State<UserInfoScreen> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
+  
+  get ip_adres => ipAdres;
+  UserData? userData = UserDataManager.getUserData();
+  get imageurl => userData?.imageUrl_data;
 
   Future<void> _takePhoto() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
@@ -37,7 +48,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   Future<void> _updatePhoto() async {
     if (_image == null) return;
 
-    final url = Uri.parse("http://10.0.2.2:8000/user/photo");
+    final url = Uri.parse("$ip_adres/user/photo");
     final token = await TokenManager().getToken();
     if (token == null) {
       print("Token is not available");
@@ -59,7 +70,18 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       if (response.statusCode == 200) {
         final responseData = await http.Response.fromStream(response);
         print("Update Photo Response: ${responseData.body}");
+        final newImageUrl = jsonDecode(responseData.body)['imageurl'];
+        // Update the image URL in userData and refresh the UI
+        setState(() {
+          userData?.updateImageUrl(newImageUrl);
+        });
 
+        // Navigate back to HomeScreen and refresh
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()), // Navigate to HomeScreen
+        );
+        
          // Kayıt başarılı toast gösterimi
         Fluttertoast.showToast(
           msg: "Kayıt başarılı",

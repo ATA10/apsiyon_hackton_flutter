@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../services/user/UserDataManager.dart';
+import '../services/user/user_data.dart';
 import 'registration_screen.dart';
 import 'home_screen.dart';
 import '../services/token_manager.dart';
+import '../services/ip_adress.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -14,12 +17,14 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
+  get ip_adres => ipAdres;
 
   void _login() async {
     String username = _usernameController.text;
     String password = _passwordController.text;
 
-    String url = "http://10.0.2.2:8000/user/login";
+    String url = "$ip_adres/user/login";
     var data = {
       "email": username,
       "password": password
@@ -37,17 +42,17 @@ class _MainScreenState extends State<MainScreen> {
 
       // Check if login was successful
       if (loginResponse['token'] != null) {
-        // Store the token
         TokenManager().setToken(loginResponse['token']);
         print(loginResponse['token']);
 
-        // Navigate to HomeScreen based on user role
+        UserData userData = UserData.fromJson(loginResponse['user']);
+        UserDataManager.setUserData(userData);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       } else {
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Kullanıcı adı veya şifre hatalı')),
         );

@@ -2,10 +2,13 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'token_manager.dart';
+import 'ip_adress.dart';
 
 class UserService {
+  static get ip_adres => ipAdres;
+  
   static Future<String?> fetchUserPhotoUrl() async {
-    final url = Uri.parse("http://10.0.2.2:8000/user/photo");
+    final url = Uri.parse("$ip_adres/user/photo");
     final token = await TokenManager().getToken();
     if (token == null) {
       print("Token is not available");

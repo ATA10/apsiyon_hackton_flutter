@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/ip_adress.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -15,6 +16,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  get ip_adres => ipAdres;
 
 
   Future<void> _saveRegistration() async {
@@ -40,7 +43,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       };
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/register'),
+        Uri.parse('$ip_adres/user/register'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
