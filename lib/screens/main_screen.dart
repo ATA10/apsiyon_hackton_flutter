@@ -6,6 +6,8 @@ import '../services/user/UserDataManager.dart';
 import '../services/user/user_data.dart';
 import 'registration_screen.dart';
 import 'home_screen.dart';
+import 'user_info_screen.dart';
+import 'entry_exit_info_screen.dart';
 import '../services/token_manager.dart';
 import '../services/ip_adress.dart';
 
@@ -17,7 +19,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+  bool _isResident = true; // Default to 'Sakin'
+
   get ip_adres => ipAdres;
 
   void _login() async {
@@ -48,10 +51,18 @@ class _MainScreenState extends State<MainScreen> {
         UserData userData = UserData.fromJson(loginResponse['user']);
         UserDataManager.setUserData(userData);
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
+        if (_isResident) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        } else {
+          // Navigate to the guest screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreenGuest()), // Replace with actual guest screen
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Kullanıcı adı veya şifre hatalı')),
@@ -104,6 +115,22 @@ class _MainScreenState extends State<MainScreen> {
                     labelText: 'Şifre',
                     border: OutlineInputBorder(),
                   ),
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Sakin'),
+                    Switch(
+                      value: !_isResident,
+                      onChanged: (value) {
+                        setState(() {
+                          _isResident = !value;
+                        });
+                      },
+                    ),
+                    Text('Misafir'),
+                  ],
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(

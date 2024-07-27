@@ -65,14 +65,14 @@ class EntryExitInfoScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Permission Details'),
+          title: Text('İzin Detayları'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Assigned By: ${permission.assignedById}'),
-                Text('User ID: ${permission.userId}'),
-                Text('Start Date: ${permission.startDate}'),
-                Text('End Date: ${permission.endDate}'),
+                Text('İzin Atayan: ${permission.assignedById}'),
+                Text('Apartman Adı: ${permission.apartmentId}'),
+                Text('Başlangıç Tarih: ${permission.startDate}'),
+                Text('Bitiş Tarih: ${permission.endDate}'),
                 Image.network(
                   imageUrl,
                   errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
