@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import '../services/token_manager.dart';
@@ -15,41 +13,26 @@ class CreatePermissionScreen extends StatefulWidget {
 
 class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
   String ip_adres = ipAdres; // IP adresi (services/ip_adress.dart'dan alınır)
-  String _selectedPermissionType = ''; // Seçilen izin türü
   String _selectedEntryType = ''; // Seçilen giriş türü
-  bool _showAdditionalFields = false; // Ek alanları göster
   TextEditingController _emailController = TextEditingController(); // E-posta denetleyicisi
   DateTime? _startDate; // Başlangıç tarihi
   DateTime? _endDate; // Bitiş tarihi
-  File? _image; // Yüklenen resim dosyası
   String? _selectedApartmentId; // Seçilen apartman kimliği
   List<Map<String, dynamic>> _apartments = []; // Apartmanlar listesi
+  Map<String, dynamic>? _userDetails; // Kullanıcı detayları
 
   @override
   void initState() {
     super.initState();
     _fetchApartments();
+    _emailController.addListener(_fetchUserDetails);
   }
 
-  Future<void> _fetchApartments() async {
-    List<Map<String, dynamic>> apartments = await fetchApartments();
-    setState(() {
-      _apartments = apartments;
-      if (_apartments.isNotEmpty) {
-        _selectedApartmentId = _apartments[0]['apartment_id'].toString();
-      }
-    });
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-    }
+  @override
+  void dispose() {
+    _emailController.removeListener(_fetchUserDetails);
+    _emailController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickDate(BuildContext context, bool isStartDate) async {
@@ -71,11 +54,59 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
     }
   }
 
+  Future<void> _fetchApartments() async {
+    List<Map<String, dynamic>> apartments = await fetchApartments();
+    setState(() {
+      _apartments = apartments;
+      if (_apartments.isNotEmpty) {
+        _selectedApartmentId = _apartments[0]['apartment_id'].toString();
+      }
+    });
+  }
+
+  Future<void> _fetchUserDetails() async {
+    if (_emailController.text.isEmpty) {
+      setState(() {
+        _userDetails = null;
+      });
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$ip_adres/user/getuser?mail=${_emailController.text}'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _userDetails = jsonDecode(response.body);
+        });
+        print("user $_userDetails");
+      } else {
+        setState(() {
+          _userDetails = null;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _userDetails = null;
+      });
+      Fluttertoast.showToast(
+        msg: "Kullanıcı bilgileri alınamadı: $e",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+    }
+  }
+
   Map<String, dynamic> _collectFormData() {
     final Map<String, dynamic> formData = {};
 
-    if (_emailController.text.isNotEmpty) {
-      formData['user_id'] = _emailController.text;
+    if (_userDetails != null && _userDetails!['id'] != null) {
+      formData['user_id'] = _userDetails!['id'];
     }
     if (_selectedApartmentId != null) {
       formData['apartment_id'] = _selectedApartmentId;
@@ -87,9 +118,6 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
       if (_endDate != null) {
         formData['end_date'] = _endDate?.toIso8601String();
       }
-    }
-    if (_image != null) {
-      formData['imageurl'] = _image?.path;
     }
 
     return formData;
@@ -131,8 +159,7 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text("Kayıt Başarılı"),
-            content: 
-            Image.network('$ip_adres'+jsonDecode(response.body)['qr_image_url']),
+            content: Image.network('$ip_adres' + jsonDecode(response.body)['qr_image_url']),
             actions: [
               TextButton(
                 onPressed: () {
@@ -209,65 +236,14 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
               ),
             ),
             SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ChoiceChip(
-                  label: Text('Fotograf'),
-                  selected: _selectedPermissionType == 'Fotograf ile giriş',
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedPermissionType = 'Fotograf ile giriş';
-                      _showAdditionalFields = true;
-                    });
-                  },
-                ),
-              ],
-            ),
-            if (_selectedPermissionType == 'Fotograf ile giriş')
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Fotograf Yükle"),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListTile(
-                                leading: Icon(Icons.camera),
-                                title: Text("Kameradan Çek"),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  _pickImage(ImageSource.camera);
-                                },
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.photo_library),
-                                title: Text("Galeriden Seç"),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  _pickImage(ImageSource.gallery);
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey,
-                    backgroundImage: _image != null ? FileImage(_image!) : null,
-                    child: _image == null ? Icon(Icons.add_a_photo) : null,
-                  ),
-                ),
+            if (_userDetails != null && _userDetails!['imageurl'] != null) ...[
+              Image.network(
+                '$ip_adres${_userDetails!['imageurl']}',
+                height: 100,
+                width: 100,
               ),
-            SizedBox(height: 20),
+              SizedBox(height: 20),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

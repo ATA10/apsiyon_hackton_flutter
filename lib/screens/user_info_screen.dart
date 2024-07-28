@@ -138,7 +138,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                   },
                 ),
                 ChoiceChip(
-                  label: Text('Koleksiyona bakın'),
+                  label: Text('Galeriye bakın'),
                   selected: false,
                   onSelected: (selected) {
                     _choosePhoto();

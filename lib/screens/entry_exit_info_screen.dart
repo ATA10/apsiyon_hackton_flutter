@@ -50,7 +50,7 @@ class EntryExitInfoScreen extends StatelessWidget {
                           onPressed: () {
                             showPermissionDialog(context, permission);
                           },
-                          child: Text('Permission ID: ${permission.id}'),
+                          child: Text('İzin Alınan Adres: ${permission.apartmentId}'), // izin alınan adres complex adı olacak
                         );
                       },
                     ),
@@ -94,7 +94,7 @@ class EntryExitInfoScreen extends StatelessWidget {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Close'),
+              child: Text('Kapat'),
               onPressed: () {
                 Navigator.of(context).pop();
               },

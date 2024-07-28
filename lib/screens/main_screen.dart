@@ -17,55 +17,61 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isResident = true;
+  bool _isResident = true; // Default to 'Sakin'
 
   get ip_adres => ipAdres;
 
-  Future<void> _login() async {
+  void _login() async {
     String username = _usernameController.text;
     String password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
-      _showSnackBar('Kullanıcı adı ve şifre gerekli.');
-      return;
-    }
-
     String url = "$ip_adres/user/login";
-    var data = {"email": username, "password": password};
+    var data = {
+      "email": username,
+      "password": password
+    };
 
-    try {
-      var response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode(data),
-      );
+    var response = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(data),
+    );
 
-      if (response.statusCode == 200) {
-        var loginResponse = json.decode(response.body);
+    if (response.statusCode == 200) {
+      var loginResponse = json.decode(response.body);
+      print("Login Response: $loginResponse");
 
-        if (loginResponse['token'] != null) {
-          TokenManager().setToken(loginResponse['token']);
-          UserData userData = UserData.fromJson(loginResponse['user']);
-          UserDataManager.setUserData(userData);
+      // Check if login was successful
+      if (loginResponse['token'] != null) {
+        TokenManager().setToken(loginResponse['token']);
+        print(loginResponse['token']);
 
+        UserData userData = UserData.fromJson(loginResponse['user']);
+        UserDataManager.setUserData(userData);
+
+        if (_isResident) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-                builder: (context) => _isResident ? HomeScreen() : HomeScreenGuest()),
+            MaterialPageRoute(builder: (context) => HomeScreen()),
           );
         } else {
-          _showSnackBar('Kullanıcı adı veya şifre hatalı');
+          // Navigate to the guest screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreenGuest()), // Replace with actual guest screen
+          );
         }
       } else {
-        _showSnackBar('Giriş yapılamadı');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kullanıcı adı veya şifre hatalı')),
+        );
       }
-    } catch (e) {
-      _showSnackBar('Bir hata oluştu: $e');
+    } else {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Giriş yapılamadı')),
+      );
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -82,93 +88,69 @@ class _MainScreenState extends State<MainScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildAppIcon(),
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset('assets/icons/app_icon.png'),
+                ),
                 SizedBox(height: 20),
-                _buildTextField(
+                TextField(
                   controller: _usernameController,
-                  label: 'Kullanıcı İsim',
+                  decoration: InputDecoration(
+                    labelText: 'Kullanıcı Email',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 SizedBox(height: 20),
-                _buildTextField(
+                TextField(
                   controller: _passwordController,
-                  label: 'Şifre',
                   obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Şifre',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 SizedBox(height: 20),
-                _buildResidentSwitch(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Sakin'),
+                    Switch(
+                      value: !_isResident,
+                      onChanged: (value) {
+                        setState(() {
+                          _isResident = !value;
+                        });
+                      },
+                    ),
+                    Text('Misafir'),
+                  ],
+                ),
                 SizedBox(height: 20),
-                _buildLoginButton(),
+                ElevatedButton(
+                  onPressed: _login,
+                  child: Text('Giriş'),
+                ),
                 SizedBox(height: 20),
-                _buildRegisterButton(),
+                ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) => RegistrationScreen(),
+                    );
+                  },
+                  child: Text('Kayıt Ol'),
+                ),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAppIcon() {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.9),
-        shape: BoxShape.circle,
-      ),
-      child: Image.asset('assets/icons/app_icon.png'),
-    );
-  }
-
-  Widget _buildTextField(
-      {required TextEditingController controller,
-      required String label,
-      bool obscureText = false}) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
-      ),
-    );
-  }
-
-  Widget _buildResidentSwitch() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Sakin'),
-        Switch(
-          value: !_isResident,
-          onChanged: (value) {
-            setState(() {
-              _isResident = !value;
-            });
-          },
-        ),
-        Text('Misafir'),
-      ],
-    );
-  }
-
-  Widget _buildLoginButton() {
-    return ElevatedButton(
-      onPressed: _login,
-      child: Text('Giriş'),
-    );
-  }
-
-  Widget _buildRegisterButton() {
-    return ElevatedButton(
-      onPressed: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (context) => RegistrationScreen(),
-        );
-      },
-      child: Text('Kayıt Ol'),
     );
   }
 }

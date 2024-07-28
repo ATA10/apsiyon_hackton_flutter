@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import 'main_screen.dart';
 import 'user_info_screen.dart';
 import 'create_permission_screen.dart';
@@ -28,9 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadUserInfo() {
     if (userData != null) {
       setState(() {
-        _profileImageUrl = ipAdres + userData!.imageUrl_data!;
-        _userName = userData!.fullname_data;
-        _userEmail = userData!.email_data;
+        _profileImageUrl = ipAdres + (userData?.imageUrl_data ?? '');
+        _userName = userData?.fullname_data ?? '';
+        _userEmail = userData?.email_data ?? '';
       });
     }
   }
@@ -68,8 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   : CircularProgressIndicator(),
               SizedBox(height: 10),
               Text(
-                _userName,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                _userName, 
+                style: GoogleFonts.roboto(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 _userEmail,
@@ -136,9 +141,9 @@ class _HomeScreenGuestState extends State<HomeScreenGuest> {
   void _loadUserInfo() {
     if (userData != null) {
       setState(() {
-        _profileImageUrl = ipAdres + userData!.imageUrl_data!;
-        _userName = userData!.fullname_data;
-        _userEmail = userData!.email_data;
+        _profileImageUrl = ipAdres + (userData?.imageUrl_data ?? '');
+        _userName = userData?.fullname_data ?? '';
+        _userEmail = userData?.email_data ?? '';
       });
     }
   }
@@ -176,8 +181,11 @@ class _HomeScreenGuestState extends State<HomeScreenGuest> {
                   : CircularProgressIndicator(),
               SizedBox(height: 10),
               Text(
-                _userName,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                _userName, 
+                style: GoogleFonts.roboto(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 _userEmail,
