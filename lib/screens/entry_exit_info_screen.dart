@@ -5,7 +5,7 @@ import '../services/ip_adress.dart';
 class EntryExitInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
@@ -23,6 +23,11 @@ class EntryExitInfoScreen extends StatelessWidget {
                 },
               ),
             ),
+            Text(
+              'Giriş Bilgileri İzleme',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
             FutureBuilder<List<Permission>>(
               future: fetchPermissions(),
               builder: (context, snapshot) {
@@ -32,8 +37,12 @@ class EntryExitInfoScreen extends StatelessWidget {
                   return Text('Error: ${snapshot.error}');
                 } else if (snapshot.hasData) {
                   final permissions = snapshot.data!;
-                  return Expanded(
+                  return Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.4, // Limit height to 40% of screen height
+                    ),
                     child: ListView.builder(
+                      shrinkWrap: true,
                       itemCount: permissions.length,
                       itemBuilder: (context, index) {
                         final permission = permissions[index];

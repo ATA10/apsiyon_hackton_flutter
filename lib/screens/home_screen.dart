@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _profileImageUrl.isNotEmpty
                   ? CircleAvatar(
-                      radius: 50,
+                      radius: 100,
                       backgroundImage: NetworkImage(_profileImageUrl),
                     )
                   : CircularProgressIndicator(),

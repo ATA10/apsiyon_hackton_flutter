@@ -118,7 +118,10 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 },
               ),
             ),
-            Text('Kullanıcı Bilgilerini Güncelleme'),
+            Text(
+              'Kullanıcı Bilgilerini Güncelleme',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 16.0),
             _image == null
                 ? Text('Fotoğraf seçili değil!')

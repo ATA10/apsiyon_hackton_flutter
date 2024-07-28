@@ -26,7 +26,6 @@ Future<List<Permission>> fetchPermissions() async {
   }
 }
 
-
 class Permission {
   final int assignedById;
   final int userId;

@@ -14,17 +14,16 @@ class CreatePermissionScreen extends StatefulWidget {
 }
 
 class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
-  String ip_adres = ipAdres;
-  String _selectedPermissionType = '';
-  String _selectedEntryType = '';
-  bool _showAdditionalFields = false;
-  TextEditingController _additionalInfoController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  DateTime? _startDate;
-  DateTime? _endDate;
-  File? _image;
-  String? _selectedApartmentId;
-  List<Map<String, dynamic>> _apartments = [];
+  String ip_adres = ipAdres; // IP adresi (services/ip_adress.dart'dan alınır)
+  String _selectedPermissionType = ''; // Seçilen izin türü
+  String _selectedEntryType = ''; // Seçilen giriş türü
+  bool _showAdditionalFields = false; // Ek alanları göster
+  TextEditingController _emailController = TextEditingController(); // E-posta denetleyicisi
+  DateTime? _startDate; // Başlangıç tarihi
+  DateTime? _endDate; // Bitiş tarihi
+  File? _image; // Yüklenen resim dosyası
+  String? _selectedApartmentId; // Seçilen apartman kimliği
+  List<Map<String, dynamic>> _apartments = []; // Apartmanlar listesi
 
   @override
   void initState() {
@@ -177,6 +176,10 @@ class _CreatePermissionScreenState extends State<CreatePermissionScreen> {
                   Navigator.of(context).pop();
                 },
               ),
+            ),
+            Text(
+              'Giriş İzni Oluştur',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
             TextField(
